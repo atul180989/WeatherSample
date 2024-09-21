@@ -13,10 +13,11 @@ class WeatherViewModel: NSObject, ObservableObject {
     
     // MARK: - Properties
     
-    @Published var cityName: String = ""
-    @Published var temperature: String = ""
-    @Published var weatherDescription: String = ""
-    @Published var weatherIcon: String = ""
+    @Published var cityName: String?
+    @Published var temperature: String?
+    @Published var weatherDescription: String?
+    @Published var weatherIcon: String?
+    @Published var error: Error? = nil
     
     private let weatherService: WeatherService
     private let cityCache = CityCache()
@@ -30,7 +31,7 @@ class WeatherViewModel: NSObject, ObservableObject {
         locationManager.delegate = self
         loadLastSearchedCity()
     }
-
+    
     // MARK: - Network Operation
     
     func fetchWeather(for city: String) {
@@ -43,8 +44,13 @@ class WeatherViewModel: NSObject, ObservableObject {
                     self?.weatherDescription = weatherResponse.weather.first?.description.capitalized ?? ""
                     self?.weatherIcon = weatherResponse.weather.first?.icon ?? ""
                     self?.cityCache.save(city: city)
+                    self?.error = nil
                 case .failure(let error):
-                    print("Error fetching weather: \(error)")
+                    self?.error = error
+                    self?.cityName = nil
+                    self?.temperature = nil
+                    self?.weatherDescription = nil
+                    self?.weatherIcon = nil
                 }
             }
         }
@@ -67,7 +73,11 @@ class WeatherViewModel: NSObject, ObservableObject {
                     self?.weatherIcon = weatherResponse.weather.first?.icon ?? ""
                 }
             case.failure(let error):
-                print(error.localizedDescription)
+                self?.error = error
+                self?.cityName = nil
+                self?.temperature = nil
+                self?.weatherDescription = nil
+                self?.weatherIcon = nil
             }
         }
     }
